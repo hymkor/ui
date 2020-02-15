@@ -8,11 +8,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-runewidth"
 	"github.com/mattn/go-tty"
 
 	"github.com/zetamatta/go-readline-ny"
+	"github.com/zetamatta/go-windows10-ansi"
 )
 
 const (
@@ -155,6 +155,12 @@ func getline(out io.Writer, prompt string, defaultStr string, csrlin *int) (stri
 func main1() error {
 	var view1 View
 
+	disabler, err := ansi.EnableStdoutVirtualTerminalProcessing()
+	if err != nil {
+		return err
+	}
+	defer disabler()
+
 	tty1, err := tty.Open()
 	if err != nil {
 		return err
@@ -166,7 +172,7 @@ func main1() error {
 		return err
 	}
 
-	out := colorable.NewColorableStderr()
+	out := os.Stdout
 
 	br := bufio.NewReader(os.Stdin)
 	csrline := 0
