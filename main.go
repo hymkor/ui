@@ -12,7 +12,7 @@ import (
 	"github.com/mattn/go-runewidth"
 	"github.com/mattn/go-tty"
 
-	"github.com/zetamatta/nyagos/readline"
+	"github.com/zetamatta/go-readline-ny"
 )
 
 const (
@@ -126,7 +126,7 @@ func getline(out io.Writer, prompt string, defaultStr string, csrlin *int) (stri
 	}
 	defer io.WriteString(out, _ANSI_CURSOR_OFF)
 
-	readline.BindKeySymbol(readline.K_ESCAPE, readline.F_INTR)
+	editor.BindKeySymbol(readline.K_ESCAPE, readline.F_INTR)
 
 	up := &readline.KeyGoFuncT{
 		Func: func(_ context.Context, _ *readline.Buffer) readline.Result {
@@ -142,10 +142,10 @@ func getline(out io.Writer, prompt string, defaultStr string, csrlin *int) (stri
 		},
 		Name: "DOWN",
 	}
-	readline.BindKeyFunc(readline.K_UP, up)
-	readline.BindKeyFunc(readline.K_DOWN, down)
-	readline.BindKeyFunc(readline.K_CTRL_P, up)
-	readline.BindKeyFunc(readline.K_CTRL_N, down)
+	editor.BindKeyFunc(readline.K_UP, up)
+	editor.BindKeyFunc(readline.K_DOWN, down)
+	editor.BindKeyFunc(readline.K_CTRL_P, up)
+	editor.BindKeyFunc(readline.K_CTRL_N, down)
 
 	var err error
 	text, err = editor.ReadLine(context.Background())
