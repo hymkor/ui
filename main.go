@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-runewidth"
 	"github.com/mattn/go-tty"
 
@@ -152,14 +153,8 @@ func getline(out io.Writer, prompt string, defaultStr string, csrlin *int) (stri
 	return text + term, err
 }
 
-func main1() error {
+func main2(in io.Reader, out io.Writer) error {
 	var view1 View
-
-	disabler, err := ansi.EnableStdoutVirtualTerminalProcessing()
-	if err != nil {
-		return err
-	}
-	defer disabler()
 
 	tty1, err := tty.Open()
 	if err != nil {
@@ -172,9 +167,7 @@ func main1() error {
 		return err
 	}
 
-	out := os.Stdout
-
-	br := bufio.NewReader(os.Stdin)
+	br := bufio.NewReader(in)
 	csrline := 0
 	headline := 0
 	buffer := []string{}
@@ -217,9 +210,30 @@ func main1() error {
 	return nil
 }
 
+func main1(args []string) error {
+	disabler, err := ansi.EnableStdoutVirtualTerminalProcessing()
+	if err != nil {
+		return err
+	}
+	defer disabler()
+
+	if len(args) >= 2 {
+		fd, err := os.Open(args[1])
+		if err != nil {
+			return err
+		}
+		defer fd.Close()
+		return main2(fd, os.Stdout)
+	} else if !isatty.IsTerminal(os.Stdin.Fd()) {
+		return main2(os.Stdin, os.Stdout)
+	} else {
+		return fmt.Errorf("Usage: %s FILENAME  or %s < FILENAME", args[0], args[0])
+	}
+}
+
 func main() {
-	if err := main1(); err != nil {
-		io.WriteString(os.Stderr, err.Error())
+	if err := main1(os.Args); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 }
